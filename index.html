@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grade Calculator</title>
+    <style>
+        body {
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            background-color: #83c984;
+            margin: 0;
+            padding: 50px;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            padding: 30px;
+            background-color: rgb(187, 244, 181);
+            border-radius: 10px;
+            box-shadow: 0px 0px 15px rgba(13, 13, 13, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #000000;
+        }
+
+        h2 {
+            text-align: center;
+            color: #000000;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        input {
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #e3f5da;
+        }
+
+        button {
+            padding: 10px;
+            font-size: 16px;
+            background-color: #04b95f;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+        }
+
+        button:hover {
+            background-color: #00954a;
+        }
+
+        .result {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .info {
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
+
+    <!-- PyScript setup -->
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Dawinan</h1>
+        <h2> Grade Calculator </h2>
+        <form id="gradeForm">
+            <label for="absences">Number of Absences:</label>
+            <input type="number" id="absences" name="absences" min="0" required>
+
+            <label for="prelim">Prelim Exam Grade (0-100):</label>
+            <input type="number" id="prelim" name="prelim" step="0.01" min="0" max="100" required>
+
+            <label for="quizzes">Quizzes Grade (0-100):</label>
+            <input type="number" id="quizzes" name="quizzes" step="0.01" min="0" max="100" required>
+
+            <label for="requirements">Requirements Grade (0-100):</label>
+            <input type="number" id="requirements" name="requirements" step="0.01" min="0" max="100" required>
+
+            <label for="recitation">Recitation Grade (0-100):</label>
+            <input type="number" id="recitation" name="recitation" step="0.01" min="0" max="100" required>
+
+            <button type="submit">Calculate Required Grades</button>
+        </form>
+
+        <div id="result" class="result" style="display:none;">
+            <h2 class="info">Prelim Grade: <span id="prelimGrade"></span></h2>
+            <h2 class="info">To pass with 75%, you need a Midterm grade of <span id="midtermGrade"></span> and a Final grade of <span id="finalGrade"></span>.</h2>
+            <h2 class="info">To achieve 90%, you need a Midterm grade of <span id="midtermGrade90"></span> and a Final grade of <span id="finalGrade90"></span>.</h2>
+        </div>
+    </div>
+
+    <!-- PyScript code for grade calculation -->
+    <py-script>
+        from pyscript import Element
+
+        def calculate_grades(event):
+            # Prevent form submission
+            event.preventDefault()
+
+            # Get input values
+            absences = int(Element("absences").element.value)
+            prelim_grade = float(Element("prelim").element.value)
+            quizzes_grade = float(Element("quizzes").element.value)
+            requirements_grade = float(Element("requirements").element.value)
+            recitation_grade = float(Element("recitation").element.value)
+
+            # Check for absences
+            if absences >= 4:
+                Element("result").element.style.display = "block"
+                Element("prelimGrade").element.innerHTML = "Automatically Fail"
+                Element("midtermGrade").element.innerHTML = "N/A"
+                Element("finalGrade").element.innerHTML = "N/A"
+                Element("midtermGrade90").element.innerHTML = "N/A"
+                Element("finalGrade90").element.innerHTML = "N/A"
+                return
+
+            # Calculate Prelim grade
+            prelim_weighted = prelim_grade * 0.2
+            quizzes_weighted = quizzes_grade * 0.2
+            requirements_weighted = requirements_grade * 0.3
+            recitation_weighted = recitation_grade * 0.3
+
+            # Total grade so far
+            total_grade = prelim_weighted + quizzes_weighted + requirements_weighted + recitation_weighted
+
+            # Calculate how much grade is needed from Midterm (30%) and Final (50%) combined to pass
+            passing_grade = 75
+            remaining_grade_needed = passing_grade - total_grade
+
+            # Calculate required grades for Midterm and Final to pass
+            required_midterm_final = remaining_grade_needed / (0.3 + 0.5)
+
+            required_midterm = required_midterm_final * 0.3
+            required_final = required_midterm_final * 0.5
+
+            # Calculate required grades for Midterm and Final to achieve 90%
+            target_grade = 90
+            remaining_grade_needed_90 = target_grade - total_grade
+            required_midterm_final_90 = remaining_grade_needed_90 / (0.3 + 0.5)
+
+            required_midterm_90 = required_midterm_final_90 * 0.3
+            required_final_90 = required_midterm_final_90 * 0.5
+
+            # Update the result display in the HTML
+            Element("prelimGrade").element.innerHTML = f"{total_grade:.2f}"
+            Element("midtermGrade").element.innerHTML = f"{required_midterm:.2f}"
+            Element("finalGrade").element.innerHTML = f"{required_final:.2f}"
+            Element("midtermGrade90").element.innerHTML = f"{required_midterm_90:.2f}"
+            Element("finalGrade90").element.innerHTML = f"{required_final_90:.2f}"
+            Element("result").element.style.display = "block"
+
+        # Attach the form submit event to the calculate_grades function
+        Element("gradeForm").element.onsubmit = calculate_grades
+    </py-script>
+</body>
+</html>
